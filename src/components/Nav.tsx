@@ -13,17 +13,22 @@ export function Nav() {
   }
 
   return (
-    <nav className="h-[50px] flex items-center justify-between px-4 border-b border-border bg-card sticky top-0 z-50 no-print">
+    <nav className="h-14 flex items-center justify-between px-5 border-b border-border/60 glass sticky top-0 z-50 no-print">
       <div
-        className="flex items-center gap-2 text-sm font-bold cursor-pointer"
+        className="flex items-center gap-2.5 text-sm font-bold cursor-pointer group"
         onClick={handleHome}
       >
-        <div className="w-6 h-6 rounded-[7px] bg-primary text-primary-foreground flex items-center justify-center">
-          <Brain className="w-3 h-3" />
+        <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center shadow-sm shadow-primary/20 group-hover:scale-105 transition-transform">
+          <Brain className="w-3.5 h-3.5 text-white" />
         </div>
-        InterviewAI
+        <span className="tracking-tight">InterviewAI</span>
       </div>
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleDarkMode}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 rounded-xl"
+        onClick={toggleDarkMode}
+      >
         {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
       </Button>
     </nav>

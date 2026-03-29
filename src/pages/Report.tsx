@@ -63,19 +63,21 @@ export default function ReportPage() {
   return (
     <div className="max-w-[800px] mx-auto px-4 pt-6 pb-20 animate-fade-in">
       {/* Header */}
-      <div className="flex justify-between items-start gap-2.5 flex-wrap mb-6 no-print">
+      <div className="flex justify-between items-start gap-3 flex-wrap mb-8 no-print">
         <div>
-          <h1 className="text-xl font-extrabold tracking-tight mb-0.5">Interview Report</h1>
-          <p className="text-[13px] text-muted-foreground">
-            {jobTitle} · {answers.length} questions · Avg score {avg100}%
+          <h1 className="text-2xl font-extrabold tracking-tight mb-1">
+            Interview <span className="gradient-text">Report</span>
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {jobTitle} · {answers.length} questions · Average score {avg100}%
           </p>
         </div>
-        <div className="flex gap-1.5">
-          <Button variant="secondary" size="sm" onClick={() => window.print()}>
-            <Download className="w-3 h-3 mr-1" /> Export
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="rounded-xl" onClick={() => window.print()}>
+            <Download className="w-3.5 h-3.5 mr-1.5" /> Export
           </Button>
-          <Button variant="ghost" size="sm" onClick={onRestart}>
-            <RefreshCw className="w-3 h-3 mr-1" /> New
+          <Button variant="ghost" size="sm" className="rounded-xl" onClick={onRestart}>
+            <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> New
           </Button>
         </div>
       </div>

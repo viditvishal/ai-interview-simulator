@@ -144,7 +144,7 @@ export default function SetupPage() {
           <div className="text-[13px] font-semibold">Generating your interview…</div>
           <div className="w-full max-w-[280px] space-y-1.5">
             {[
-              { key: 'q', label: 'Interview questions (Ollama)' },
+              { key: 'q', label: 'Interview questions (AI)' },
               { key: 'ats', label: 'ATS resume analysis' },
             ].map(({ key, label }) => (
               <div key={key} className="flex items-center gap-2 text-xs">
@@ -166,22 +166,30 @@ export default function SetupPage() {
 
       {/* Nav buttons */}
       {!loading && (
-        <div className="flex justify-between mt-3.5">
+        <div className="flex justify-between mt-4">
           <Button
-            variant="secondary"
-            size="sm"
+            variant="outline"
+            className="rounded-xl"
             onClick={() => setStep((s) => Math.max(1, s - 1))}
             disabled={step === 1}
           >
             Back
           </Button>
           {step < 3 ? (
-            <Button onClick={() => setStep((s) => s + 1)} disabled={!canNext()}>
+            <Button
+              onClick={() => setStep((s) => s + 1)}
+              disabled={!canNext()}
+              className="rounded-xl gradient-primary border-0 shadow-sm shadow-primary/20 font-medium px-6"
+            >
               Continue
               <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
             </Button>
           ) : (
-            <Button onClick={generate} disabled={!canNext()}>
+            <Button
+              onClick={generate}
+              disabled={!canNext()}
+              className="rounded-xl gradient-primary border-0 shadow-lg shadow-primary/20 btn-glow font-medium px-6"
+            >
               <Zap className="w-3.5 h-3.5 mr-1" />
               Generate Interview
             </Button>

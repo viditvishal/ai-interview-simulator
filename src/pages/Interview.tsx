@@ -97,16 +97,20 @@ export default function InterviewPage() {
       (answers.reduce((s, a) => s + (a.evaluation?.score ?? 0), 0) / answers.length) * 10
     )
     return (
-      <div className="max-w-[700px] mx-auto px-4 flex-1 flex flex-col items-center justify-center text-center min-h-[calc(100vh-50px)]">
-        <div className="w-16 h-16 rounded-full bg-success/10 border border-success/20 flex items-center justify-center text-success mb-4">
-          <Check className="w-7 h-7" />
+      <div className="max-w-[700px] mx-auto px-4 flex-1 flex flex-col items-center justify-center text-center min-h-[calc(100vh-56px)]">
+        <div className="w-20 h-20 rounded-2xl gradient-primary-soft border border-primary/15 flex items-center justify-center text-primary mb-6 animate-pop-in">
+          <Check className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-extrabold mb-2 tracking-tight">Interview Complete!</h2>
-        <p className="text-muted-foreground text-[13px] mb-6">
-          {answered}/{questions.length} answered · Avg {avgPct}%
+        <h2 className="text-2xl font-extrabold mb-2 tracking-tight animate-fade-in">Interview Complete!</h2>
+        <p className="text-muted-foreground text-sm mb-8 animate-fade-in">
+          {answered}/{questions.length} answered · Average score {avgPct}%
         </p>
-        <Button size="lg" onClick={finishInterview} className="rounded-xl">
-          <BarChart3 className="w-4 h-4 mr-1.5" />
+        <Button
+          size="lg"
+          onClick={finishInterview}
+          className="rounded-2xl gradient-primary border-0 shadow-lg shadow-primary/20 btn-glow px-8 py-6 font-semibold animate-fade-in"
+        >
+          <BarChart3 className="w-4 h-4 mr-2" />
           View Full Report
         </Button>
       </div>
@@ -114,16 +118,16 @@ export default function InterviewPage() {
   }
 
   return (
-    <div className="max-w-[700px] mx-auto px-4 pt-4 flex-1 flex flex-col min-h-[calc(100vh-50px)]">
+    <div className="max-w-[700px] mx-auto px-4 pt-5 flex-1 flex flex-col min-h-[calc(100vh-56px)]">
       <ProgressBar current={currentQuestionIndex} total={questions.length} />
 
-      <div className="flex-1 flex flex-col gap-3 pb-3.5 overflow-y-auto min-h-[200px]">
+      <div className="flex-1 flex flex-col gap-4 pb-4 overflow-y-auto min-h-[200px]">
         {/* AI Question */}
-        <div className="flex gap-2.5 animate-fade-in">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-            <Brain className="w-3.5 h-3.5 text-primary-foreground" />
+        <div className="flex gap-3 animate-fade-in">
+          <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/20">
+            <Brain className="w-4 h-4 text-white" />
           </div>
-          <div className="max-w-[80%] p-3 px-4 rounded-xl bg-card border border-border rounded-tl-sm text-[13px] leading-relaxed">
+          <div className="max-w-[85%] p-4 rounded-2xl bg-card border border-border/60 rounded-tl-md text-sm leading-relaxed shadow-sm">
             {q.question}
           </div>
         </div>
@@ -131,19 +135,19 @@ export default function InterviewPage() {
         {/* Evaluating state */}
         {evaling && (
           <>
-            <div className="flex gap-2.5 flex-row-reverse animate-fade-in">
-              <div className="w-7 h-7 rounded-lg bg-muted border border-border flex items-center justify-center flex-shrink-0">
-                <User className="w-3.5 h-3.5 text-muted-foreground" />
+            <div className="flex gap-3 flex-row-reverse animate-fade-in">
+              <div className="w-8 h-8 rounded-xl bg-muted border border-border/60 flex items-center justify-center flex-shrink-0">
+                <User className="w-4 h-4 text-muted-foreground" />
               </div>
-              <div className="max-w-[80%] p-3 px-4 rounded-xl bg-primary text-primary-foreground rounded-tr-sm text-[13px] opacity-65 italic">
+              <div className="max-w-[80%] p-4 rounded-2xl gradient-primary text-white rounded-tr-md text-sm opacity-65 italic">
                 Submitting…
               </div>
             </div>
-            <div className="flex gap-2.5 animate-fade-in">
-              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                <Brain className="w-3.5 h-3.5 text-primary-foreground" />
+            <div className="flex gap-3 animate-fade-in">
+              <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/20">
+                <Brain className="w-4 h-4 text-white" />
               </div>
-              <div className="flex items-center gap-2 p-3 px-4 bg-card border border-border rounded-xl rounded-tl-sm text-xs text-muted-foreground">
+              <div className="flex items-center gap-2.5 p-4 bg-card border border-border/60 rounded-2xl rounded-tl-md text-xs text-muted-foreground shadow-sm">
                 <div className="flex gap-1">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bop" />
                   <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bop" style={{ animationDelay: '0.16s' }} />
@@ -158,48 +162,48 @@ export default function InterviewPage() {
         {/* Eval result */}
         {currEval && !evaling && (
           <>
-            <div className="flex gap-2.5 flex-row-reverse animate-fade-in">
-              <div className="w-7 h-7 rounded-lg bg-muted border border-border flex items-center justify-center flex-shrink-0">
-                <User className="w-3.5 h-3.5 text-muted-foreground" />
+            <div className="flex gap-3 flex-row-reverse animate-fade-in">
+              <div className="w-8 h-8 rounded-xl bg-muted border border-border/60 flex items-center justify-center flex-shrink-0">
+                <User className="w-4 h-4 text-muted-foreground" />
               </div>
-              <div className="max-w-[80%] p-3 px-4 rounded-xl bg-primary text-primary-foreground rounded-tr-sm text-[13px]">
+              <div className="max-w-[80%] p-4 rounded-2xl gradient-primary text-white rounded-tr-md text-sm">
                 {answers[answers.length - 1]?.answer}
               </div>
             </div>
-            <div className="flex gap-2.5 animate-pop-in">
-              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                <Brain className="w-3.5 h-3.5 text-primary-foreground" />
+            <div className="flex gap-3 animate-pop-in">
+              <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/20">
+                <Brain className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
-                <div className="bg-card border border-border rounded-xl p-3.5">
-                  <div className="flex items-center gap-2.5 mb-2.5">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-extrabold font-mono border-2 flex-shrink-0 ${scoreColor(currEval.score)} ${scoreBorder(currEval.score)}`}>
+                <div className="bg-card border border-border/60 rounded-2xl p-5 shadow-sm">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-extrabold font-mono border-2 flex-shrink-0 ${scoreColor(currEval.score)} ${scoreBorder(currEval.score)}`}>
                       {currEval.score}
                     </div>
                     <div className="flex-1">
-                      <div className="text-[13px] font-bold">
+                      <div className="text-sm font-bold">
                         {currEval.score >= 8 ? 'Excellent!' : currEval.score >= 6 ? 'Good answer' : currEval.score >= 4 ? 'Needs work' : 'Keep practicing'}
                       </div>
-                      <div className="flex gap-1.5 mt-0.5">
-                        <Badge variant="outline" className={`text-[10px] px-2 py-0 ${currEval.fromAI ? 'bg-success/7 text-success border-success/18' : 'bg-warning/7 text-warning border-warning/18'}`}>
+                      <div className="flex gap-2 mt-1">
+                        <Badge variant="outline" className={`text-[10px] px-2 py-0 rounded-full ${currEval.fromAI ? 'bg-success/7 text-success border-success/18' : 'bg-warning/7 text-warning border-warning/18'}`}>
                           {currEval.fromAI ? '● AI' : '● Demo'}
                         </Badge>
-                        <span className="text-[11px] text-muted-foreground">{currEval.score}/10</span>
+                        <span className="text-[11px] text-muted-foreground font-mono">{currEval.score}/10</span>
                       </div>
                     </div>
                   </div>
-                  <div className="text-[13px] text-muted-foreground leading-relaxed mb-2">{currEval.feedback}</div>
+                  <div className="text-sm text-muted-foreground leading-relaxed mb-3">{currEval.feedback}</div>
                   {currEval.ideal_answer && (
                     <>
                       <button
-                        className="text-xs text-primary font-medium flex items-center gap-0.5 cursor-pointer hover:underline"
+                        className="text-xs text-primary font-semibold flex items-center gap-1 cursor-pointer hover:underline"
                         onClick={() => setShowIdeal((s) => !s)}
                       >
                         {showIdeal ? 'Hide' : 'Show'} ideal answer
-                        <ChevronDown className={`w-2.5 h-2.5 transition-transform ${showIdeal ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showIdeal ? 'rotate-180' : ''}`} />
                       </button>
                       {showIdeal && (
-                        <div className="text-xs text-muted-foreground leading-relaxed bg-muted rounded-lg p-2.5 px-3 mt-2 animate-fade-in">
+                        <div className="text-xs text-muted-foreground leading-relaxed gradient-primary-soft rounded-xl p-4 mt-2.5 animate-fade-in border border-primary/10">
                           {currEval.ideal_answer}
                         </div>
                       )}
@@ -225,16 +229,22 @@ export default function InterviewPage() {
 
       {/* Next button */}
       {currEval && !evaling && (
-        <div className="flex justify-end mb-3.5">
+        <div className="flex justify-end mb-4">
           {currentQuestionIndex + 1 >= questions.length ? (
-            <Button onClick={next}>
-              <BarChart3 className="w-3.5 h-3.5 mr-1" />
-              Finish & Report
+            <Button
+              onClick={next}
+              className="rounded-2xl gradient-primary border-0 shadow-sm shadow-primary/20 font-medium px-6 py-5"
+            >
+              <BarChart3 className="w-4 h-4 mr-1.5" />
+              Finish & View Report
             </Button>
           ) : (
-            <Button onClick={next}>
+            <Button
+              onClick={next}
+              className="rounded-2xl gradient-primary border-0 shadow-sm shadow-primary/20 font-medium px-6 py-5"
+            >
               Next Question
-              <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+              <ChevronRight className="w-4 h-4 ml-0.5" />
             </Button>
           )}
         </div>
