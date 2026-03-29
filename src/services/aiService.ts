@@ -7,13 +7,12 @@ import type {
   InterviewAnswer,
 } from '@/types'
 
-// ── Ollama Configuration ─────────────────────────────────────────────────────
+// ── Configuration ────────────────────────────────────────────────────────────
 
 const OLLAMA_BASE_URL = import.meta.env.VITE_OLLAMA_URL || 'http://localhost:11434'
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'llama3.2'
 
-// Skip Ollama calls entirely when deployed (not localhost) to avoid
-// browser permission popups and failed network requests
+// Detect environment: use Ollama locally, Groq API route when deployed
 const isLocalhost = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
 
@@ -46,16 +45,49 @@ function parseJSON<T>(raw: string): T {
   throw new Error('No valid JSON found in response')
 }
 
-// ── Core Ollama Call ─────────────────────────────────────────────────────────
+// ── Groq API Call (via Vercel serverless /api/chat) ──────────────────────────
+
+async function groqCall<T>(
+  prompt: string,
+  systemPrompt: string,
+  timeoutMs = 30000
+): Promise<T | null> {
+  try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 2048,
+      }),
+    })
+
+    clearTimeout(timer)
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    const text: string = data.content || ''
+    return parseJSON<T>(text)
+  } catch {
+    return null
+  }
+}
+
+// ── Ollama Call (local development) ──────────────────────────────────────────
 
 async function ollamaCall<T>(
   prompt: string,
   systemPrompt: string,
   timeoutMs = 30000
 ): Promise<T | null> {
-  // When deployed (not localhost), skip network call — use demo fallback instantly
-  if (!isLocalhost) return null
-
   try {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -88,6 +120,19 @@ async function ollamaCall<T>(
   } catch {
     return null
   }
+}
+
+// ── Unified AI Call — Groq when deployed, Ollama when local ──────────────────
+
+async function aiCall<T>(
+  prompt: string,
+  systemPrompt: string,
+  timeoutMs = 30000
+): Promise<T | null> {
+  if (isLocalhost) {
+    return ollamaCall<T>(prompt, systemPrompt, timeoutMs)
+  }
+  return groqCall<T>(prompt, systemPrompt, timeoutMs)
 }
 
 // ── Demo / Fallback Data ─────────────────────────────────────────────────────
@@ -202,7 +247,7 @@ export const aiService = {
     count: number,
     types: QuestionType[]
   ): Promise<{ questions: GeneratedQuestion[]; fromAI: boolean }> {
-    const result = await ollamaCall<{ questions: GeneratedQuestion[] }>(
+    const result = await aiCall<{ questions: GeneratedQuestion[] }>(
       `Given this resume and job description, generate exactly ${count} interview questions.
 
 Resume:
@@ -244,7 +289,7 @@ Rules: type must be one of [${types.join('|')}], difficulty one of [easy|medium|
     answer: string,
     jobDescription: string
   ): Promise<{ evaluation: AnswerEvaluation; fromAI: boolean }> {
-    const result = await ollamaCall<AnswerEvaluation>(
+    const result = await aiCall<AnswerEvaluation>(
       `Evaluate this interview answer:
 
 Question: ${question}
@@ -279,7 +324,7 @@ score must be 0-10 integer.`,
     resumeText: string,
     jobDescription: string
   ): Promise<{ analysis: ATSAnalysis; fromAI: boolean }> {
-    const result = await ollamaCall<ATSAnalysis>(
+    const result = await aiCall<ATSAnalysis>(
       `Analyze this resume against the job description for ATS compatibility.
 
 Resume:
@@ -316,7 +361,7 @@ ats_score must be 0-100 integer.`,
       .map((a) => `Q: ${a.question.question.slice(0, 50)} | Score: ${a.evaluation?.score ?? 0}/10`)
       .join('\n')
 
-    const result = await ollamaCall<ReportGeneration>(
+    const result = await aiCall<ReportGeneration>(
       `Generate a final report based on this interview session data:
 
 Interview for: ${jobTitle}
