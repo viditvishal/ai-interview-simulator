@@ -5,6 +5,7 @@ import type {
   ATSAnalysis,
   ReportGeneration,
   InterviewAnswer,
+  InterviewReadiness,
 } from '@/types'
 
 // ── Configuration ────────────────────────────────────────────────────────────
@@ -357,34 +358,48 @@ ats_score must be 0-100 integer.`,
     atsScore: number,
     jobTitle: string
   ): Promise<{ report: ReportGeneration; fromAI: boolean }> {
+    // Calculate actual scores server-side — never trust the AI for the number
+    const totalScore = answers.reduce((s, a) => s + (a.evaluation?.score ?? 0), 0)
+    const answeredCount = answers.filter((a) => a.answer !== '[Skipped]').length
+    const avgScore = answeredCount > 0 ? totalScore / answers.length : 0 // divide by total, not answered
+    const interviewPct = Math.round(avgScore * 10) // 0-100 scale
+    const overallScore = Math.round(interviewPct * 0.65 + atsScore * 0.35) // weighted: 65% interview, 35% ATS
+
     const summary = answers
-      .map((a) => `Q: ${a.question.question.slice(0, 50)} | Score: ${a.evaluation?.score ?? 0}/10`)
+      .map((a) => {
+        const skipped = a.answer === '[Skipped]'
+        return `Q: ${a.question.question.slice(0, 50)} | ${skipped ? 'SKIPPED (0/10)' : `Score: ${a.evaluation?.score ?? 0}/10`}`
+      })
       .join('\n')
 
-    const result = await aiCall<ReportGeneration>(
-      `Generate a final report based on this interview session data:
+    const readiness: InterviewReadiness =
+      interviewPct >= 75 ? 'ready' :
+      interviewPct >= 60 ? 'almost_ready' :
+      interviewPct >= 40 ? 'needs_practice' : 'not_ready'
+
+    const result = await aiCall<Omit<ReportGeneration, 'overall_score' | 'interview_readiness'>>(
+      `Generate a performance report for this interview. Do NOT invent scores — I will calculate them separately. Focus on qualitative feedback only.
 
 Interview for: ${jobTitle}
+Answered ${answeredCount} out of ${answers.length} questions.
+Actual interview score: ${interviewPct}% (average ${avgScore.toFixed(1)}/10)
 ATS Score: ${atsScore}/100
 Question results:
 ${summary}
 
-Return ONLY this JSON:
-{"overall_score":72,"performance_summary":"2-3 sentence summary.","strengths":["s1","s2","s3"],"weaknesses":["w1","w2"],"recommendations":[{"title":"Title","description":"Actionable description.","priority":"high"}],"interview_readiness":"almost_ready"}
+Return ONLY this JSON (do NOT include overall_score or interview_readiness — I calculate those):
+{"performance_summary":"2-3 sentence summary reflecting the actual scores above.","strengths":["genuine strength observed"],"weaknesses":["specific area to improve"],"recommendations":[{"title":"Title","description":"Actionable advice.","priority":"high"}]}
 
-interview_readiness must be one of: not_ready|needs_practice|almost_ready|ready`,
-      'You are a career coach generating a comprehensive interview performance report. Always respond with valid JSON only.'
+Be honest and direct. If most questions were skipped or scored 0, say so clearly. Do not sugarcoat.`,
+      'You are a brutally honest career coach. Always respond with valid JSON only. Never inflate or fabricate scores.'
     )
 
-    const avgPct = Math.round(
-      (answers.reduce((s, a) => s + (a.evaluation?.score ?? 0), 0) / Math.max(answers.length, 1)) * 10
-    )
-
-    if (result && typeof result.overall_score === 'number') {
+    if (result) {
       return {
         report: {
-          ...result,
-          overall_score: Math.max(0, Math.min(100, Math.round(result.overall_score))),
+          overall_score: overallScore,
+          interview_readiness: readiness,
+          performance_summary: result.performance_summary || `Scored ${interviewPct}% on interview, ${atsScore}% on ATS.`,
           strengths: Array.isArray(result.strengths) ? result.strengths : [],
           weaknesses: Array.isArray(result.weaknesses) ? result.weaknesses : [],
           recommendations: Array.isArray(result.recommendations) ? result.recommendations : [],
@@ -392,6 +407,6 @@ interview_readiness must be one of: not_ready|needs_practice|almost_ready|ready`
         fromAI: true,
       }
     }
-    return { report: demoReport(avgPct, atsScore), fromAI: false }
+    return { report: demoReport(interviewPct, atsScore), fromAI: false }
   },
 }
