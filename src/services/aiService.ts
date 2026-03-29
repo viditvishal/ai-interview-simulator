@@ -326,7 +326,7 @@ score must be 0-10 integer.`,
     jobDescription: string
   ): Promise<{ analysis: ATSAnalysis; fromAI: boolean }> {
     const result = await aiCall<ATSAnalysis>(
-      `Analyze this resume against the job description for ATS compatibility.
+      `Analyze this resume against the job description for ATS keyword compatibility.
 
 Resume:
 ${resumeText.slice(0, 1200)}
@@ -334,18 +334,39 @@ ${resumeText.slice(0, 1200)}
 Job Description:
 ${jobDescription.slice(0, 1200)}
 
-Return ONLY this JSON:
-{"ats_score":72,"matched_keywords":["React"],"missing_keywords":["Docker"],"improvement_suggestions":["Add Docker"],"skill_gaps":{"required":["Docker"],"present":["React"],"bonus":["GraphQL"]},"format_issues":["No metrics"]}
+Instructions:
+1. Extract ALL required skills/keywords/tools from the JD
+2. Check which ones appear (exact or close match) in the resume
+3. Calculate ats_score as: (matched_keywords count / (matched_keywords count + missing_keywords count)) * 100, rounded to integer
+4. Be thorough — check for tools, frameworks, methodologies, certifications, soft skills
 
-ats_score must be 0-100 integer.`,
-      'You are an ATS (Applicant Tracking System) expert and resume coach. Always respond with valid JSON only.'
+Return ONLY this JSON:
+{"ats_score":<calculated percentage>,"matched_keywords":["keyword1","keyword2"],"missing_keywords":["keyword3"],"improvement_suggestions":["specific actionable suggestion"],"skill_gaps":{"required":["skills in JD missing from resume"],"present":["skills in both"],"bonus":["skills in resume not in JD but valuable"]},"format_issues":["specific format issue"]}
+
+IMPORTANT: ats_score MUST equal matched/(matched+missing)*100. Do not guess — count the keywords.`,
+      'You are an ATS (Applicant Tracking System) expert. Always respond with valid JSON only. Be precise with keyword matching — only count a keyword as matched if it genuinely appears in the resume.'
     )
 
     if (result && typeof result.ats_score === 'number') {
+      // Server-side validation: recalculate score from actual keyword counts
+      const matched = Array.isArray(result.matched_keywords) ? result.matched_keywords.length : 0
+      const missing = Array.isArray(result.missing_keywords) ? result.missing_keywords.length : 0
+      const total = matched + missing
+      const calculatedScore = total > 0 ? Math.round((matched / total) * 100) : 0
+
+      // Use calculated score if AI's score deviates more than 15 points from reality
+      const aiScore = Math.max(0, Math.min(100, Math.round(result.ats_score)))
+      const finalScore = Math.abs(aiScore - calculatedScore) > 15 ? calculatedScore : aiScore
+
       return {
         analysis: {
           ...result,
-          ats_score: Math.max(0, Math.min(100, Math.round(result.ats_score))),
+          ats_score: finalScore,
+          matched_keywords: Array.isArray(result.matched_keywords) ? result.matched_keywords : [],
+          missing_keywords: Array.isArray(result.missing_keywords) ? result.missing_keywords : [],
+          improvement_suggestions: Array.isArray(result.improvement_suggestions) ? result.improvement_suggestions : [],
+          skill_gaps: result.skill_gaps || { required: [], present: [], bonus: [] },
+          format_issues: Array.isArray(result.format_issues) ? result.format_issues : [],
         },
         fromAI: true,
       }
