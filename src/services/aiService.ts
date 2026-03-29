@@ -12,6 +12,11 @@ import type {
 const OLLAMA_BASE_URL = import.meta.env.VITE_OLLAMA_URL || 'http://localhost:11434'
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'llama3.2'
 
+// Skip Ollama calls entirely when deployed (not localhost) to avoid
+// browser permission popups and failed network requests
+const isLocalhost = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+
 // ── JSON Parser (robust — handles markdown fences, partial JSON, etc.) ───────
 
 function parseJSON<T>(raw: string): T {
@@ -48,6 +53,9 @@ async function ollamaCall<T>(
   systemPrompt: string,
   timeoutMs = 30000
 ): Promise<T | null> {
+  // When deployed (not localhost), skip network call — use demo fallback instantly
+  if (!isLocalhost) return null
+
   try {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)
